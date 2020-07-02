@@ -501,7 +501,14 @@ export class Essence extends ImmutableRecord<EssenceValue>(defaultEssence) {
   public changeSplits(splits: Splits, strategy: VisStrategy): Essence {
     const { splits: oldSplits, dataCube, visualization, visResolve, filter, series } = this;
 
-    const newSplits = this.setSortOnSplits(splits).updateWithFilter(filter, dataCube.dimensions);
+    let newSplits = this.setSortOnSplits(splits).updateWithFilter(filter, dataCube.dimensions);
+    for (let i = 0; i < newSplits.length(); ++i) {
+      const split = newSplits.getSplit(i);
+      if (split.type === "time") {
+        newSplits = newSplits.removeSplit(split).insertByIndex(0, split);
+        break;
+      }
+    }
 
     function adjustStrategy(strategy: VisStrategy): VisStrategy {
       // If in manual mode stay there, keep the vis regardless of suggested strategy
